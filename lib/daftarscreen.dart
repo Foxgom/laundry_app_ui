@@ -1,297 +1,133 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:laundry_app/loginscreen.dart';
 
 class DaftarScreen extends StatefulWidget {
-  const DaftarScreen({super.key});
+  const DaftarScreen({Key? key}) : super(key: key);
 
   @override
-  _DaftarScreenState createState() => _DaftarScreenState();
+  State<DaftarScreen> createState() => _DaftarScreenState();
 }
 
 class _DaftarScreenState extends State<DaftarScreen> {
+  final _emailController = TextEditingController();
+  final _namaUsahaController = TextEditingController();
+  final _teleponController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+
   bool _showPassword1 = false;
   bool _showPassword2 = false;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _namaUsahaController.dispose();
+    _teleponController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFF8F8F8),
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
+        title: Image.asset(
+          'assets/images/tulisan-laundrease.png',
+          height: 16,
+        ),
+        centerTitle: true,
         leading: IconButton(
-          icon: Image.asset('assets/images/icon-arrow.png'), 
-          color: Colors.black, 
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          'Daftar',
-          style: GoogleFonts.poppins(
-            fontSize: 17,
-            fontWeight: FontWeight.w700,
-            color: Colors.black,
-          ),
-        ),
-        centerTitle: true, // kalau ingin teks di tengah
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(       // ⬅️ Agar konten bisa di-scroll
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16),
-            child: Column(
-              children: [
-                Container(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min, 
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Buat Akun Baru di ',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        Image.asset(
-                          width: 98,
-                          height: 16,
-                          'assets/images/tulisan-laundrease.png', 
-                        ),
-                      ],
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
+              Stack(
+                children: [
+                  Container(
+                    width: 96,
+                    height: 96,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFFD9D9D9),
+                    ),
+                    child: const Icon(Icons.person, size: 48, color: Colors.white),
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 28,
+                      height: 28,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF4778F8),
+                      ),
+                      child: const Icon(Icons.add, color: Colors.white, size: 20),
                     ),
                   ),
-                ),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Mulai kelola usaha laundry Anda dengan pencatatan yang rapi dan praktis.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w400,
-                    ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildTextField(label: "Email", hintText: 'Alamat email anda', controller: _emailController),
+              _buildTextField(label: "Nama Usaha", hintText: 'Masukkan nama usaha laundry Anda', controller: _namaUsahaController),
+              _buildTextField(label: "Nomor Telepon", hintText: 'Masukkan nomor telepon usaha Anda', controller: _teleponController),
+              _buildPasswordField(
+                label: "Kata Sandi",
+                isVisible: _showPassword1,
+                onToggle: () => setState(() => _showPassword1 = !_showPassword1),
+                hintText: 'Minimal 8 karakter',
+                controller: _passwordController,
+              ),
+              _buildPasswordField(
+                label: "Ulangi Kata Sandi",
+                isVisible: _showPassword2,
+                onToggle: () => setState(() => _showPassword2 = !_showPassword2),
+                hintText: 'Ulangi kata sandi Anda',
+                controller: _confirmPasswordController,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _register,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF4778F8),
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-
-                Center(
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      // Foto profil
-                      Container(
-                        margin: EdgeInsets.only(top: 10),
-                        width: 100,
-                        height: 100,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: const DecorationImage(
-                            image: AssetImage(
-                              'assets/images/replace-photo.png'), 
-                            fit: BoxFit.cover,
-                          ),
+                child: _isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'Daftar Sekarang',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
-                      // Icon edit di kanan bawah foto profil
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          width: 28,
-                          height: 28,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            image: const DecorationImage(
-                              image: AssetImage('assets/images/icon-plus-biru.png'), // ganti path
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 10),
-                _buildTextField(label: "Email", 
-                hintText: 'Alamat email anda'),
-                _buildTextField(label: "Nama Usaha", 
-                hintText: 'Masukkan nama usaha laundry Anda'),
-                _buildTextField(label: "Nomor Telepon", 
-                hintText: 'Masukkan nomor telepon usaha Anda'),
-                _buildPasswordField(
-                  label: "Kata Sandi",
-                  isVisible: _showPassword1,
-                  onToggle: () => setState(() => _showPassword1 = 
-                  !_showPassword1),
-                  hintText: 'Minimal 8 karakter'
-                ),
-                _buildPasswordField(
-                  label: "Ulangi Kata Sandi",
-                  isVisible: _showPassword2,
-                  onToggle: () => setState(() => _showPassword2 = 
-                  !_showPassword2),
-                  hintText: 'Ulangi kata sandi Anda'
-                ),
-                Container(
-                  margin: const EdgeInsets.only(
-                    top: 10,
-                  ), 
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all<Color>
-                      (Color(0xFF4778F8)), 
-                      foregroundColor: WidgetStateProperty.all<Color>
-                      (Colors.white), 
-                      minimumSize: WidgetStateProperty.all<Size>
-                      (Size(double.infinity, 48)), 
-                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4), 
-                        ),
-                      ),
-                    ),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,          
-                        builder: (context) {
-                          return AlertDialog(
-                            shape: RoundedRectangleBorder(  
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            content: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Row(
-                                  mainAxisSize: MainAxisSize.min, 
-                                  crossAxisAlignment:
-                                   CrossAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Akun ',
-                                      style: GoogleFonts.poppins(
-                                        color: Colors.black,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                    Image.asset(
-                                      width: 98,
-                                      height: 16,
-                                      'assets/images/tulisan-laundrease.png', 
-                                    ),
-                                  ],
-                                ),
-                                Text(
-                                  'Berhasil dibuat!',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.black,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: Container(
-                                    margin: const EdgeInsets.symmetric(
-                                      horizontal: 60, 
-                                    ),
-                                    child: ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF4778F8), // sama seperti tombol utama
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      minimumSize: const Size.fromHeight(44),
-                                    ),
-                                    onPressed: () {
-                                      Navigator.pop(context);                   
-                                      Navigator.pushReplacement(                // ganti ke halaman login
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => const LoginScreen(),
-                                        ),
-                                      );
-                                    },
-                                    child: Text(
-                                      'Masuk',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ),
-                                  )
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
-                    },
-                    child: Text(
-                      'Daftar Sekarang',
-                      style: GoogleFonts.poppins(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-
-                Container(
-                  margin: EdgeInsets.only(top: 10),
-                  child: Align(
-                    alignment: Alignment.center,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min, 
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Sudah punya akun? ',
-                          style: GoogleFonts.poppins(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (_) => 
-                              const LoginScreen()),
-                            );
-                          },
-                          child: Text(
-                            'Masuk',
-                            style: GoogleFonts.poppins(
-                              color: const Color(0xFF4778F8),
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-              ],
-            ),
+              ),
+              const SizedBox(height: 24),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTextField({required String label, String? hintText}) {
+  Widget _buildTextField({required String label, String? hintText, TextEditingController? controller}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
@@ -302,21 +138,22 @@ class _DaftarScreenState extends State<DaftarScreen> {
             style: GoogleFonts.poppins(
               color: Colors.black,
               fontSize: 16,
-              fontWeight: FontWeight.w400
+              fontWeight: FontWeight.w400,
             ),
           ),
           const SizedBox(height: 6),
           TextField(
+            controller: controller,
             decoration: InputDecoration(
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               hintText: hintText,
               enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFC0BDBD)), // border saat tidak fokus
+                borderSide: const BorderSide(color: Color(0xFFC0BDBD)),
                 borderRadius: BorderRadius.circular(6),
               ),
               focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFC0BDBD)), // border saat fokus
+                borderSide: const BorderSide(color: Color(0xFFC0BDBD)),
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -327,10 +164,11 @@ class _DaftarScreenState extends State<DaftarScreen> {
   }
 
   Widget _buildPasswordField({
-  required String label,
-  required bool isVisible,
-  required VoidCallback onToggle,
-  String? hintText
+    required String label,
+    required bool isVisible,
+    required VoidCallback onToggle,
+    String? hintText,
+    TextEditingController? controller,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -342,17 +180,17 @@ class _DaftarScreenState extends State<DaftarScreen> {
             style: GoogleFonts.poppins(
               color: Colors.black,
               fontSize: 16,
-              fontWeight: FontWeight.w400
+              fontWeight: FontWeight.w400,
             ),
           ),
           const SizedBox(height: 6),
           TextField(
+            controller: controller,
             obscureText: !isVisible,
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12,
-               vertical: 12),
-               hintText: hintText,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              hintText: hintText,
               enabledBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: Color(0xFFC0BDBD)),
                 borderRadius: BorderRadius.circular(6),
@@ -371,6 +209,88 @@ class _DaftarScreenState extends State<DaftarScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _register() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+    final confirmPassword = _confirmPasswordController.text;
+    final namaUsaha = _namaUsahaController.text;
+    final telepon = _teleponController.text;
+
+    if (email.isEmpty || password.isEmpty || namaUsaha.isEmpty || telepon.isEmpty) {
+      _showError("Semua field harus diisi.");
+      return;
+    }
+
+    if (password != confirmPassword) {
+      _showError("Kata sandi tidak cocok.");
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final response = await Supabase.instance.client.auth.signUp(
+        email: email,
+        password: password,
+        data: {
+          'nama_usaha': namaUsaha,
+          'telepon': telepon,
+        },
+      );
+
+      if (response.user != null) {
+        _showSuccessDialog();
+      } else {
+        _showError("Registrasi gagal.");
+      }
+    } catch (e) {
+      _showError("Terjadi kesalahan: \${e.toString()}");
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  void _showSuccessDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Akun ', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+                Image.asset('assets/images/tulisan-laundrease.png', width: 98, height: 16),
+              ],
+            ),
+            Text('Berhasil dibuat!', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700)),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginScreen()));
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF4778F8),
+                minimumSize: const Size.fromHeight(44),
+              ),
+              child: Text('Masuk', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }
