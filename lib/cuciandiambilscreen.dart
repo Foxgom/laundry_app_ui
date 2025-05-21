@@ -11,8 +11,7 @@ class CucianDiambilScreen extends StatelessWidget {
       {
         'title': 'Fitri Dwi Lestari',
         'datetime': '10 Mei 2025  19.52',
-        'price': 'Rp 50.000',
-        'ukuran': '/Kg'
+        
       },
     ];
 
