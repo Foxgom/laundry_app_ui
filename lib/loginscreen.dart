@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:laundry_app/daftarscreen.dart';
 import 'package:laundry_app/mainscreen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +14,39 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   bool _showPassword1 = false;
 
+  // ✅ Tambahkan controller
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  // ✅ Fungsi login ke Supabase
+  Future<void> handleLogin() async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Email dan password wajib diisi')),
+      );
+      return;
+    }
+
+    try {
+      final res = await Supabase.instance.client.auth
+          .signInWithPassword(email: email, password: password);
+
+      if (res.user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (_) => const MainScreen()),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Login gagal: $error')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -20,8 +54,8 @@ class _LoginScreenState extends State<LoginScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: Image.asset('assets/images/icon-arrow.png'), 
-          color: Colors.black, 
+          icon: Image.asset('assets/images/icon-arrow.png'),
+          color: Colors.black,
           onPressed: () {
             Navigator.pop(context);
           },
@@ -34,35 +68,34 @@ class _LoginScreenState extends State<LoginScreen> {
             color: Colors.black,
           ),
         ),
-        centerTitle: true, // kalau ingin teks di tengah
+        centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(       // ⬅️ Agar konten bisa di-scroll
+        child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16),
             child: Column(
               children: [
-                Container(
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min, 
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          'Selamat Datang Kembali di ',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Selamat Datang Kembali di ',
+                        style: GoogleFonts.poppins(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                         ),
-                        Image.asset(
-                          width: 98,
-                          height: 16,
-                          'assets/images/tulisan-laundrease.png', 
-                        ),
-                      ],
-                    ),
+                      ),
+                      Image.asset(
+                        width: 98,
+                        height: 16,
+                        'assets/images/tulisan-laundrease.png',
+                      ),
+                    ],
                   ),
                 ),
                 Align(
@@ -76,14 +109,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                _buildTextField(label: "Email", 
-                hintText: 'Alamat email anda'),
+                _buildTextField(
+                  label: "Email",
+                  hintText: 'Alamat email anda',
+                  controller: emailController,
+                ),
                 _buildPasswordField(
                   label: "Kata Sandi",
                   isVisible: _showPassword1,
-                  onToggle: () => setState(() => _showPassword1 = 
-                  !_showPassword1),
-                  hintText: 'Masukkan kata sandi Anda'
+                  onToggle: () => setState(() => _showPassword1 = !_showPassword1),
+                  hintText: 'Masukkan kata sandi Anda',
+                  controller: passwordController,
                 ),
                 Align(
                   alignment: Alignment.centerRight,
@@ -97,30 +133,23 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.only(
-                    top: 10,
-                  ), 
+                  margin: const EdgeInsets.only(top: 10),
                   child: TextButton(
                     style: ButtonStyle(
-                      backgroundColor: WidgetStateProperty.all<Color>
-                      (Color(0xFF4778F8)), 
-                      foregroundColor: WidgetStateProperty.all<Color>
-                      (Colors.white), 
-                      minimumSize: WidgetStateProperty.all<Size>
-                      (Size(double.infinity, 48)), 
-                      shape: WidgetStateProperty.all<RoundedRectangleBorder>(
+                      backgroundColor:
+                          WidgetStateProperty.all<Color>(Color(0xFF4778F8)),
+                      foregroundColor:
+                          WidgetStateProperty.all<Color>(Colors.white),
+                      minimumSize: WidgetStateProperty.all<Size>(
+                          Size(double.infinity, 48)),
+                      shape:
+                          WidgetStateProperty.all<RoundedRectangleBorder>(
                         RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(4), 
+                          borderRadius: BorderRadius.circular(4),
                         ),
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (_) => 
-                        const MainScreen()),
-                      );
-                    },
+                    onPressed: handleLogin, // ✅ Panggil fungsi login
                     child: Text(
                       'Masuk',
                       style: GoogleFonts.poppins(
@@ -131,13 +160,12 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
-
                 Container(
                   margin: EdgeInsets.only(top: 10),
                   child: Align(
                     alignment: Alignment.center,
                     child: Row(
-                      mainAxisSize: MainAxisSize.min, 
+                      mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
@@ -151,8 +179,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           onTap: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => 
-                              const DaftarScreen()),
+                              MaterialPageRoute(
+                                  builder: (_) => const DaftarScreen()),
                             );
                           },
                           child: Text(
@@ -177,7 +205,11 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildTextField({required String label, String? hintText}) {
+  Widget _buildTextField({
+    required String label,
+    String? hintText,
+    required TextEditingController controller,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
@@ -185,23 +217,23 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w400
-            ),
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w400),
           ),
           const SizedBox(height: 6),
           TextField(
+            controller: controller,
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               hintText: hintText,
               enabledBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFC0BDBD)), // border saat tidak fokus
+                borderSide: const BorderSide(color: Color(0xFFC0BDBD)),
                 borderRadius: BorderRadius.circular(6),
               ),
               focusedBorder: OutlineInputBorder(
-                borderSide: const BorderSide(color: Color(0xFFC0BDBD)), // border saat fokus
+                borderSide: const BorderSide(color: Color(0xFFC0BDBD)),
                 borderRadius: BorderRadius.circular(6),
               ),
             ),
@@ -212,10 +244,11 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Widget _buildPasswordField({
-  required String label,
-  required bool isVisible,
-  required VoidCallback onToggle,
-  String? hintText
+    required String label,
+    required bool isVisible,
+    required VoidCallback onToggle,
+    String? hintText,
+    required TextEditingController controller,
   }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -224,19 +257,18 @@ class _LoginScreenState extends State<LoginScreen> {
         children: [
           Text(
             label,
-            style: GoogleFonts.poppins(
-              fontSize: 16,
-              fontWeight: FontWeight.w400
-            ),
+            style:
+                GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w400),
           ),
           const SizedBox(height: 6),
           TextField(
+            controller: controller,
             obscureText: !isVisible,
             decoration: InputDecoration(
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12,
-               vertical: 12),
-               hintText: hintText,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              hintText: hintText,
               enabledBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: Color(0xFFC0BDBD)),
                 borderRadius: BorderRadius.circular(6),
